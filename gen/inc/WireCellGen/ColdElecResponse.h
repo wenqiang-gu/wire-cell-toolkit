@@ -1,8 +1,9 @@
-/** An RCResponse waveform is simple resistor-capacitor response.
- */
+/** An ElecResponse waveform is that due to sending a unit charge
+ * pulse into an amplifier with gain and shaping and a particular
+ * response function of the ICARUS Cold electronics.  */
 
-#ifndef WIRECELL_GEN_RCRESPONSE
-#define WIRECELL_GEN_RCRESPONSE
+#ifndef WIRECELL_GEN_COLDELECRESPONSE
+#define WIRECELL_GEN_COLDELECRESPONSE
 
 #include "WireCellIface/IWaveform.h"
 #include "WireCellIface/IConfigurable.h"
@@ -12,14 +13,14 @@
 namespace WireCell {
     namespace Gen {
 
-        class RCResponse : public IWaveform, public IConfigurable {
+        class ColdElecResponse : public IWaveform, public IConfigurable {
         public:
-            RCResponse(int nticks = 10000,
-                       double t0 = 0,
-                       double width=1.0*units::ms,
-                       double tick = 0.5*units::us);
-
-
+            ColdElecResponse(int nticks = 10000,
+                             double t0 = 0,
+                             double gain = 14.0*units::mV/units::fC,
+                             double shaping = 2*units::us,
+                             double postgain = 1.0,
+                             double tick = 0.5*units::us);
             // IConfigurable interface
             virtual void configure(const WireCell::Configuration& cfg);
             virtual WireCell::Configuration default_configuration() const;
@@ -30,13 +31,12 @@ namespace WireCell {
             virtual double waveform_period() const;
             // The collection of samples
             virtual const sequence_type& waveform_samples() const;
-            // The collection of samples rebinned
+            // The collection of sample rebinned
             virtual sequence_type waveform_samples(const WireCell::Binning& tbins) const;
-
         private:
-            Response::SimpleRC *m_rc;
+            Response::ColdElec *m_coldresp;
             Configuration m_cfg;
-            sequence_type m_wave;
+            mutable sequence_type m_wave;
         };
     }
 }

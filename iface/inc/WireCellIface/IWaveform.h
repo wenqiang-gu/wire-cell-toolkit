@@ -7,6 +7,7 @@
 #define WIRECELL_IFACE_IWAVEFORM
 
 #include "WireCellIface/IData.h"
+#include "WireCellUtil/Binning.h"
 
 #include <vector>
 
@@ -21,9 +22,11 @@ namespace WireCell {
         virtual double waveform_start() const = 0;
         // The sampling period aka bin width
         virtual double waveform_period() const = 0;
-        // The collection of samples 
+        // The collection of samples
         virtual const sequence_type& waveform_samples() const = 0;
-        
+        // The collection of samples rebinned
+        virtual sequence_type waveform_samples(const WireCell::Binning& tbins) const = 0;
+
     };
 }
 

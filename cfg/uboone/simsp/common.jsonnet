@@ -40,7 +40,7 @@ local params = import "params.jsonnet";
     },
 
     elec_resp : {
-        type: "ElecResponse",
+        type: "ColdElecResponse",
         data: {
             shaping: params.elec.shaping,
             gain: params.elec.gain,
@@ -82,7 +82,7 @@ local params = import "params.jsonnet";
             ident : 0,              // must match what's in wires
             wire_schema: wc.tn($.wires),
             faces : [
-                { 
+                {
                     response: params.sim.response_plane,
                     cathode: params.sim.cathode_plane,
                 },

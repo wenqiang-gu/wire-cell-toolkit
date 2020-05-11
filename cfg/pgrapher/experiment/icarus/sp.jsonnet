@@ -11,7 +11,7 @@ function(params, tools, override = {}) {
   local pc = tools.perchanresp_nameuses,
 
   // ICARUS needs a per-anode sigproc
-  make_sigproc(anode, name=null):: g.pnode({
+  make_sigproc(anode, eresponse, name=null):: g.pnode({
     type: 'OmnibusSigProc',
     name:
       if std.type(name) == 'null'
@@ -26,6 +26,7 @@ function(params, tools, override = {}) {
       ctoffset: 0.0*wc.microsecond, // default -8.0
       per_chan_resp: pc.name,
       fft_flag: 0,  // 1 is faster but higher memory, 0 is slightly slower but lower memory
+      elecresponse : wc.tn(eresponse),
       postgain: 1,  // default 1.2
       ADC_mV: 4096 / (1400.0 * wc.mV),  // default 4096/2000
       troi_col_th_factor: 5.0,  // default 5
@@ -39,7 +40,7 @@ function(params, tools, override = {}) {
       r_fake_signal_low_th: 375,  // default 500
       r_fake_signal_high_th: 750,  // default 1000
       r_fake_signal_low_th_ind_factor: 1.0,  // default 1
-      r_fake_signal_high_th_ind_factor: 1.0,  // default 1      
+      r_fake_signal_high_th_ind_factor: 1.0,  // default 1
       r_th_peak: 3.0, // default 3.0
       r_sep_peak: 6.0, // default 6.0
       r_low_peak_sep_threshold_pre: 1200, // default 1200
@@ -61,11 +62,11 @@ function(params, tools, override = {}) {
       use_multi_plane_protection: false,
       mp3_roi_tag: 'mp3_roi%d' % anode.data.ident,
       mp2_roi_tag: 'mp2_roi%d' % anode.data.ident,
-      
+
       isWrapped: false,
       process_planes: [0, util.anode_split(anode.data.ident)], // balance the left and right split
 
     } + override,
-  }, nin=1, nout=1, uses=[anode, tools.field] + pc.uses + spfilt),
+  }, nin=1, nout=1, uses=[anode, eresponse, tools.field] + pc.uses + spfilt),
 
 }

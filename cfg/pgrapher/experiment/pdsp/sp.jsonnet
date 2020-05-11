@@ -28,6 +28,7 @@ function(params, tools, override = {}) {
       ctoffset: -7.0, // default -8.0
       per_chan_resp: pc.name,
       fft_flag: 0,  // 1 is faster but higher memory, 0 is slightly slower but lower memory
+      elecresponse : wc.tn(tools.elec_resp),
       postgain: 1,  // default 1.2
       ADC_mV: 4096 / (1400.0 * wc.mV),  // default 4096/2000
       troi_col_th_factor: 5.0,  // default 5
@@ -69,6 +70,6 @@ function(params, tools, override = {}) {
       // process_planes: [0, 2],
 
     } + override,
-  }, nin=1, nout=1, uses=[anode, tools.field] + pc.uses + spfilt),
+  }, nin=1, nout=1, uses=[anode, tools.field, tools.elec_resp] + pc.uses + spfilt),
 
 }

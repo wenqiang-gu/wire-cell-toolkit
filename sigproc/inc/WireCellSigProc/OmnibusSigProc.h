@@ -4,6 +4,7 @@
 #include "WireCellIface/IFrameFilter.h"
 #include "WireCellIface/IConfigurable.h"
 #include "WireCellIface/IAnodePlane.h"
+#include "WireCellIface/IWaveform.h"
 #include "WireCellUtil/Waveform.h"
 #include "WireCellUtil/Array.h"
 #include "WireCellUtil/Logging.h"
@@ -21,6 +22,7 @@ namespace WireCell {
                      const std::string& field_response = "FieldResponse",
                      double fine_time_offset = 0.0 * units::microsecond,
                      double coarse_time_offset = -8.0 * units::microsecond,
+                     const std::string& elecresponse_tn = "ColdElec",
                      double gain = 14.0 * units::mV/units::fC,
                      double shaping_time = 2.2 * units::microsecond,
                      double inter_gain = 1.2,
@@ -65,31 +67,31 @@ namespace WireCell {
                      const std::string& mp3_roi_tag = "mp3_roi",
                      const std::string& mp2_roi_tag = "mp2_roi" );
       virtual ~OmnibusSigProc();
-      
+
       virtual bool operator()(const input_pointer& in, output_pointer& out);
-      
+
       /// OmnibusSigProc is NOT stateless
       virtual int concurrency() { return 1; }
-      
+
       virtual void configure(const WireCell::Configuration& config);
       virtual WireCell::Configuration default_configuration() const;
-      
+
     private:
 
       // convert data into Eigen Matrix
       void load_data(const input_pointer& in, int plane);
 
       // deconvolution
-      void decon_2D_init(int plane); // main decon code 
+      void decon_2D_init(int plane); // main decon code
       void decon_2D_ROI_refine(int plane);
       void decon_2D_tightROI(int plane);
-      void decon_2D_tighterROI(int plane); 
+      void decon_2D_tighterROI(int plane);
       void decon_2D_looseROI(int plane);
       void decon_2D_hits(int plane);
       void decon_2D_charge(int plane);
 
       void decon_2D_looseROI_debug_mode(int plane);
-      
+
       // save data into the out frame and collect the indices
       void save_data(ITrace::vector& itraces, IFrame::trace_list_t& indices, int plane,
                      const std::vector<float>& perwire_rmses,
@@ -98,12 +100,12 @@ namespace WireCell {
       // save ROI into the out frame (set use_roi_debug_mode=true)
       void save_roi(ITrace::vector& itraces, IFrame::trace_list_t& indices, int plane,
                     std::vector<std::list<SignalROI*> >& roi_channel_list);
-      
+
       // save Multi-Plane ROI into the out frame (set use_roi_debug_mode=true)
       // mp_rois: osp-chid, start -> start, end
       void save_mproi(ITrace::vector& itraces, IFrame::trace_list_t& indices, int plane,
                     std::multimap<std::pair<int, int>, std::pair<int, int> > mp_rois);
-      
+
       void save_ext_roi(ITrace::vector& itraces, IFrame::trace_list_t& indices, int plane,
                         std::vector<std::list<SignalROI*> >& roi_channel_list);
 
@@ -114,7 +116,7 @@ namespace WireCell {
 
       // This little struct is used to map between WCT channel idents
       // and internal OmnibusSigProc wire/channel numbers.  See
-      // m_channel_map and m_channel_range below.  
+      // m_channel_map and m_channel_range below.
       struct OspChan {
         int channel;            // between 0 and nwire_u+nwire_v+nwire_w-1
         int wire;               // between 0 and nwire_{u,v,w,}-1 depending on plane
@@ -124,31 +126,33 @@ namespace WireCell {
         std::string str() const;
       };
 
-      
+
       // find if neighbor channels hare masked.
       bool masked_neighbors(const std::string& cmname, OspChan& ochan, int nnn);
-      
-      
+
+
       // Anode plane for geometry
       std::string m_anode_tn;
       IAnodePlane::pointer m_anode;
       std::string m_per_chan_resp;
       std::string m_field_response;
-      
+
       // Overall time offset
       double m_fine_time_offset; // must be positive, between 0-0.5 us, shift the response function to earlier time --> shift the deconvoluted signal to a later time
       double m_coarse_time_offset; // additional coarse time shift ...
       double m_intrinsic_time_offset;
       int m_wire_shift[3];
-      
+
       // bins
       double m_period;
       int m_nticks;
       int m_fft_flag;
       int m_fft_nwires[3], m_pad_nwires[3];
       int m_fft_nticks, m_pad_nticks;
-      
+
       // gain, shaping time, other applification factors
+      std::string m_elecresponse_tn;
+      std::shared_ptr<IWaveform> m_elecresponse;
       double m_gain, m_shaping_time;
       double m_inter_gain, m_ADC_mV;
 
@@ -186,7 +190,7 @@ namespace WireCell {
       // fixme: this is apparently not used:
       // channel offset
       int m_charge_ch_offset;
-      
+
       // CAUTION: this class was originally written for microboone
       // which is degenerate in how wires and channels may be
       // numbered.  DUNE APAs do not have a one-to-one nor simple
@@ -198,7 +202,7 @@ namespace WireCell {
       // in DUNE.  An OSP "channel" number goes from 0 to
       // nwire_u+nwire_v+nwire_w-1 over the entire APA.  A WCT "ident"
       // number is totally opaque, you can't assume anything about it
-      // except that it is nonnegative.  
+      // except that it is nonnegative.
       int m_nwires[3];
 
       // ROI->chid() -> wct ch ident
@@ -214,13 +218,13 @@ namespace WireCell {
       // channel number indices.  See above.  This is NOT a direct
       // copy from the IFrame.  It's reindexed by osp channel, not WCT
       // channel ident!
-      Waveform::ChannelMaskMap m_cmm; 
+      Waveform::ChannelMaskMap m_cmm;
 
       // Per-plane temporary working arrays.  Each column is one tick,
       // each row is indexec by an "OSP wire" number
       Array::array_xxf m_r_data[3];
       Array::array_xxc m_c_data[3];
-      
+
       //average overall responses
       std::vector<Waveform::realseq_t> overall_resp[3];
 
@@ -243,14 +247,14 @@ namespace WireCell {
       bool m_use_multi_plane_protection;
       std::string m_mp3_roi_tag;
       std::string m_mp2_roi_tag;
-      
+
       bool m_isWrapped;
 
       // If true, safe output as a sparse frame.  Traces will only
       // cover segments of waveforms which have non-zero signal
       // samples.
       bool m_sparse;
-      
+
       Log::logptr_t log;
 
     };

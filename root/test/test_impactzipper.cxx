@@ -75,7 +75,7 @@ int main(const int argc, char *argv[])
     const double readout_time = nticks*tick;
     const double drift_speed = 1.0*units::mm/units::us; // close, but not real
 
-    const std::string er_tn = "ElecResponse", rc_tn = "RCResponse";
+    const std::string er_tn = "ColdElecResponse", rc_tn = "RCResponse";
 
     {                           // configure elecresponse
         auto icfg = Factory::lookup_tn<IConfigurable>(er_tn);
@@ -95,7 +95,7 @@ int main(const int argc, char *argv[])
         cfg["tick"] = tick;
         cfg["start"] = t0;
         icfg->configure(cfg);
-    }        
+    }
     {
         auto icfg = Factory::lookup<IConfigurable>("FieldResponse");
         auto cfg = icfg->default_configuration();
@@ -118,7 +118,7 @@ int main(const int argc, char *argv[])
             icfg->configure(cfg);
         }
     }
-        
+
 
 
     WireCell::ExecMon em(out_basename);
@@ -183,11 +183,11 @@ int main(const int argc, char *argv[])
     // mostly "prolonged" track in X direction
     if (track_types.find("prolong") < track_types.size()) {
         tracks.add_track(event_time,
-                         Ray(event_vertex, 
+                         Ray(event_vertex,
                              event_vertex + Vector(1*units::m, 0*units::m, +10*units::cm)),
                          charge_per_depo);
         tracks.add_track(event_time,
-                         Ray(event_vertex, 
+                         Ray(event_vertex,
                              event_vertex + Vector(1*units::m, 0*units::m, -10*units::cm)),
                          charge_per_depo);
     }
@@ -201,7 +201,7 @@ int main(const int argc, char *argv[])
     }
     // "driftlike" track diagonal in space and drift time
     if (track_types.find("driftlike") < track_types.size()) {
-        tracks.add_track(event_time, 
+        tracks.add_track(event_time,
                          Ray(event_vertex,
                              event_vertex + Vector(60*units::cm, 0*units::m, 10.0*units::mm)),
                          charge_per_depo);
@@ -234,8 +234,8 @@ int main(const int argc, char *argv[])
         {
             auto vt = event_vertex + Vector(0, 0, i*0.06*units::mm);
             auto tt = event_time + i*10.0*units::us;
-            tracks.add_track(tt, 
-                        Ray(vt, 
+            tracks.add_track(tt,
+                        Ray(vt,
                             vt + Vector(0, 0, 0.1*stepsize)), // force 1 point
                         -1.0*units::eplus);
         }
@@ -261,7 +261,7 @@ int main(const int argc, char *argv[])
     std::string pdfname = argv[0];
     pdfname += ".pdf";
     canvas->Print((pdfname+"[").c_str(),"pdf");
-    
+
 
     IRandom::pointer rng = nullptr;
     if (fluctuate) {
@@ -271,13 +271,13 @@ int main(const int argc, char *argv[])
     for (int plane_id = 0; plane_id < 3; ++plane_id) {
         em("start loop over planes");
         Pimpos& pimpos = uvw_pimpos[plane_id];
-        
+
         // add deposition to binned diffusion
         Gen::BinnedDiffusion bindiff(pimpos, tbins, ndiffision_sigma, rng, Gen::BinnedDiffusion::ImpactDataCalculationStrategy::constant); // default is constant interpolation
         em("made BinnedDiffusion");
         for (auto depo : depos) {
             auto drifted = std::make_shared<Gen::TransportedDepo>(depo, field_origin.x(), drift_speed);
-	
+
             // In the real simulation these sigma are a function of
             // drift time.  Hard coded here with small values the
             // resulting voltage peak due to "point" source should
@@ -285,8 +285,8 @@ int main(const int argc, char *argv[])
             // "Detector Response" from util's test_impactresponse.
             // Peak response of a delta function of current
             // integrating over time to one electron charge would give
-            // 1eplus * 14mV/fC = 2.24 microvolt.  
-            const double sigma_time = 1*units::us; 
+            // 1eplus * 14mV/fC = 2.24 microvolt.
+            const double sigma_time = 1*units::us;
             const double sigma_pitch = 1.5*units::mm;
 
             bool ok = bindiff.add(drifted, sigma_time, sigma_pitch);
@@ -299,7 +299,7 @@ int main(const int argc, char *argv[])
                       << " q=" << drifted->charge()/units::eplus << "ele"
                       << " time-T0=" << (drifted->time()-t0)/units::us<< "us +/- " << sigma_time/units::us << " us "
                       << " pt=" << drifted->pos() / units::mm << " mm\n";
-            
+
         }
         em("added track depositions");
 
@@ -371,8 +371,8 @@ int main(const int argc, char *argv[])
                 auto mm = std::minmax_element(wave.begin(), wave.end());
                 std::cerr << "central wire: " << iwire
                           << " mm=["
-                          << (*mm.first)/units::microvolt << "," 
-                          << (*mm.second)/units::microvolt 
+                          << (*mm.first)/units::microvolt << ","
+                          << (*mm.second)/units::microvolt
                           << "] uV\n";
             }
             frame[iwire] = wave;
@@ -431,12 +431,12 @@ int main(const int argc, char *argv[])
             // origin.  Something to check...
             const int tick1 = tbins.bin(time + (ray.first.x()-fr.origin)/drift_speed);
             const int tick2 = tbins.bin(time + (ray.second.x()-fr.origin)/drift_speed);
-            
+
             const int wire1 = rbins.bin(pimpos.distance(ray.first));
             const int wire2 = rbins.bin(pimpos.distance(ray.second));
-            
+
             cerr << "digitrack: t=" << time << " ticks=["<<tick1<<","<<tick2<<"] wires=["<<wire1<<","<<wire2<<"]\n";
-            
+
             const int fudge = 0;
             TLine* line = new TLine(tick1-fudge, wire1, tick2-fudge, wire2);
             line->Write(Form("l%c%d", uvw[plane_id], (int)iline));

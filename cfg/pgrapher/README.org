@@ -45,7 +45,7 @@ Note, the *reference configuration* given here is subject to change
 without warning in the ~master~ branch.  It will remain more stable
 within a release branch.
 
-* Checking configuration 
+* Checking configuration
 
 While developing a configuration it is useful to periodically test
 that it is correct.  There are several levels at which correctness can
@@ -72,7 +72,7 @@ common mistakes are:
 
 ** Check content
 
-There are many ways to check if the configuration is what you expect.  
+There are many ways to check if the configuration is what you expect.
 
 *** Read the JSON file
 
@@ -123,7 +123,7 @@ jq '.[] | select(.data.nticks==9600) | {type:.type}' < wcls-sim-nf-sp.json | gre
   "type": "Reframer"
   "type": "wclsFrameSaver"
 jq '.[] | select(.data.nticks > 9600) | {type:.type,nticks:.data.nticks}' < wcls-sim-nf-sp.json | grep type|sort |uniq
-  "type": "ElecResponse",
+  "type": "ColdElecResponse",
   "type": "PlaneImpactResponse",
   "type": "RCResponse",
 jq '.[] | select(.data.nticks > 9600) | {type:.type,nticks:.data.nticks}' < wcls-sim-nf-sp.json | grep nticks|sort |uniq
@@ -201,4 +201,3 @@ convention is followed for the main entry points:
 - ~wcls-*.jsonnet~ :: files intended for use in WC/LS /art/ jobs.
      Reference FHiCL is provided in files of the same name but with
      ~.fcl~ extension.
-

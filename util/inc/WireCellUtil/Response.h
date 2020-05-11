@@ -17,13 +17,13 @@ namespace WireCell {
         //// system of unis.  In particular, time is not seconds.
 
 	// These objects correspond to those defined in the Wire Cell
-	// field response transfer file format schema.  
+	// field response transfer file format schema.
 	namespace Schema {
 
             // FIXME: this schema is very specific to Garfield 2D
             // results.  The namespace should reflect that and a more
             // generic interface should hide it.
-            
+
 
 	    /// Hold information about the induced current response
 	    /// due to passage of a charge along one drift path.
@@ -66,11 +66,11 @@ namespace WireCell {
 
                 PlaneResponse() : planeid(-1), location(0.0), pitch(0.0) {}
 		PlaneResponse(const std::vector<PathResponse>& paths, int pid, double l, double p)
-		    : paths(paths), planeid(pid), location(l), pitch(p) {} 
+		    : paths(paths), planeid(pid), location(l), pitch(p) {}
 
                 ~PlaneResponse();
 	    };
-	    
+
 	    /// Hold info about multiple plane responses in the detector.
 	    struct FieldResponse {
 
@@ -117,7 +117,7 @@ namespace WireCell {
 		    : planes(planes), axis(adir), origin(o), tstart(t), period(p), speed(s) {}
                 ~FieldResponse();
 	    };
-	    
+
 	    FieldResponse load(const char* filename);
 	    void dump(const char* filename, const FieldResponse& fr);
 
@@ -131,7 +131,7 @@ namespace WireCell {
 
 	Schema::FieldResponse average_1D(const Schema::FieldResponse& fr);
 
-        
+
         /// Return the plane's response as a 2D array.  This is a
         /// straight copy of the plane's current vectors into rows of
         /// the returned array.  The first "path" will be in row 0.
@@ -144,12 +144,16 @@ namespace WireCell {
 
 	/// The cold electronics response function.
 	double coldelec(double time, double gain=7.8, double shaping=1.0*units::us);
-	// HF filter format
+
+  /// The warm electronics response function.
+  double warmelec(double time, double gain=30, double shaping=1.3*units::us);
+
+  // HF filter format
 	double hf_filter(double freq, double sigma = 1, double power = 2, bool zero_freq_removal = true);
-	
+
 	// LF filter format
 	double lf_filter(double freq, double tau = 0.02);
-	  
+
 	class Generator {
 	public:
 	    virtual ~Generator();
@@ -176,6 +180,25 @@ namespace WireCell {
 	    virtual double operator()(double time) const;
 
 	};
+
+
+  /// A functional object caching gain and shape.
+  /// ICARUS warm electronics
+	class WarmElec : public Generator {
+	    const double _g, _s;
+	public:
+	    // Create warm electronics response function.  Gain is an
+	    // arbitrary scale, typically in [voltage/charge], and
+	    // shaping time in WCT system of units.
+	    WarmElec(double gain=30*units::mV/units::fC, double shaping=1.3*units::us);
+	    virtual ~WarmElec();
+
+	    // Return the response at given time.  Time is in WCT
+	    // system of units.
+	    virtual double operator()(double time) const;
+
+	};
+
 
 	/// A functional object giving the response as a function of
 	/// time to a simple RC circuit.
@@ -221,8 +244,8 @@ namespace WireCell {
 	  virtual double operator()(double freq) const;
 	};
 
-	
-	
+
+
     }
 }
 

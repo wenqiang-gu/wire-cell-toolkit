@@ -37,7 +37,7 @@ void plot_time(MultiPdf& mpdf, IPlaneImpactResponse::pointer pir,
 
     const int nwires = pir->nwires();
     cerr << "Plane " << iplane << " with " << nwires << " wires\n";
-    
+
     const char *uvw = "UVW";
 
     const double half_pitch = 0.5*pir->pitch_range();
@@ -55,7 +55,7 @@ void plot_time(MultiPdf& mpdf, IPlaneImpactResponse::pointer pir,
         zunitval = -units::eplus;
         zextent = vector<double>{0.3, 0.15, 0.6};
     }
-    std::cerr <<"zunits: " << zunit 
+    std::cerr <<"zunits: " << zunit
               << " tbinsize: " << tbins.binsize()/units::us
               << " us\n";
 
@@ -71,7 +71,7 @@ void plot_time(MultiPdf& mpdf, IPlaneImpactResponse::pointer pir,
     gStyle->SetOptStat(0);
     TH2F* hist = new TH2F(Form("h%s_%c", name.c_str(), uvw[iplane]),
                           Form("%s, 1e-/impact %c-plane", title.c_str(), uvw[iplane]),
-                          ntbins, tmin/units::us, tmax/units::us, 
+                          ntbins, tmin/units::us, tmax/units::us,
                           npbins, pmin/units::mm, pmax/units::mm);
     hist->SetXTitle("time (us)");
     hist->SetYTitle("pitch (mm)");
@@ -113,7 +113,7 @@ void plot_time(MultiPdf& mpdf, IPlaneImpactResponse::pointer pir,
     hline.SetLineStyle(2);
     for (int iwire=0; iwire<nwires/2; ++iwire) {
 	double wpitch = iwire * pir->pitch();
-	if (wpitch < pmax) { 
+	if (wpitch < pmax) {
 	    wline.DrawLine(tmin/units::us, wpitch, tmax/units::us, wpitch);
 	    wline.DrawLine(tmin/units::us, -wpitch, tmax/units::us, -wpitch);
 	}
@@ -121,7 +121,7 @@ void plot_time(MultiPdf& mpdf, IPlaneImpactResponse::pointer pir,
 	if (wpitch < pmax) {
 	    hline.DrawLine(tmin/units::us, wpitch, tmax/units::us, wpitch);
 	    hline.DrawLine(tmin/units::us, -wpitch, tmax/units::us, -wpitch);
-	}	    
+	}
     }
 
     mpdf();
@@ -160,7 +160,7 @@ int main(int argc, const char* argv[])
     cerr << "Writing to " << out_basename << endl;
 
 
-    const std::string er_tn = "ElecResponse", rc_tn = "RCResponse";
+    const std::string er_tn = "ColdElecResponse", rc_tn = "RCResponse";
 
     {                           // configure elecresponse
         auto icfg = Factory::lookup_tn<IConfigurable>(er_tn);
@@ -180,7 +180,7 @@ int main(int argc, const char* argv[])
         cfg["tick"] = tick;
         cfg["start"] = t0;
         icfg->configure(cfg);
-    }        
+    }
     {
         auto icfg = Factory::lookup<IConfigurable>("FieldResponse");
         auto cfg = icfg->default_configuration();
@@ -233,9 +233,7 @@ int main(int argc, const char* argv[])
 
     cerr << "Closing ROOT file: " << rootfile->GetName() << endl;
     rootfile->Close();
-    
+
     return 0;
 
 }
-
-

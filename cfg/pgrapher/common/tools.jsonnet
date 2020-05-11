@@ -60,7 +60,7 @@ function(params)
     },
 
     elec_resp : {
-        type: "ElecResponse",
+        type: "ColdElecResponse",
         data: sim_response_binning {
             shaping: params.elec.shaping,
             gain: params.elec.gain,
@@ -76,7 +76,7 @@ function(params)
             then params.rc_resp.width else 1.0*wc.ms,
         }
     },
-  
+
 
     sys_resp : {
         type: "ResponseSys",
@@ -103,7 +103,7 @@ function(params)
 		overall_short_padding: if params.sys_status == false
                                     then 0.1*wc.ms
                                     // cover the full time range of the convolved short responses
-                                    else 0.1*wc.ms - params.sys_resp.start, 
+                                    else 0.1*wc.ms - params.sys_resp.start,
 		// long_responses: [wc.tn($.rc_resp), wc.tn($.rc_resp)],
         long_responses: if std.objectHas(params, 'rc_resp')
         then std.makeArray(params.rc_resp.rc_layers, function(x) wc.tn($.rc_resp))

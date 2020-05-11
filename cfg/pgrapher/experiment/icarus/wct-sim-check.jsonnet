@@ -1,6 +1,6 @@
 // This is a main entry point for configuring a wire-cell CLI job to
 // simulate ICARUS.  It is simplest signal-only simulation with
-// one set of nominal field response function. 
+// one set of nominal field response function.
 
 local g = import 'pgraph.jsonnet';
 local f = import 'pgrapher/common/funcs.jsonnet';
@@ -23,7 +23,7 @@ local stubby = {
 local tracklist = [
 
   {
-    time: 0 * wc.us, 
+    time: 0 * wc.us,
     charge: -5000, // 5000 e/mm
     ray: params.det.bounds,
   },
@@ -57,7 +57,22 @@ local nf_pipes = [nf_maker(params, tools.anodes[n], chndb[n], n, name='nf%d' % n
 
 local sp_maker = import 'pgrapher/experiment/icarus/sp.jsonnet';
 local sp = sp_maker(params, tools);
-local sp_pipes = [sp.make_sigproc(a) for a in tools.anodes];
+
+// Add WarmElec response
+local eresponse = {
+    type: "WarmElecResponse",
+    name: "WarmElec",
+    data: {
+        gain: 30*wc.mV/wc.fC,
+        shaping: 1.3*wc.us,
+        postgain: 1,
+        start: 0,
+        tick: params.daq.tick,
+        nticks: params.daq.nticks,
+    },
+};
+local sp_pipes = [sp.make_sigproc(a, eresponse) for a in tools.anodes];
+
 
 // fixme: see https://github.com/WireCell/wire-cell-gen/issues/29
 local mega_anode = {
@@ -167,7 +182,7 @@ local pipelines = [
     ];
 
 // local fanpipe = f.fanpipe('FrameFanout', pipelines, 'FrameFanin', 'sn_mag_nf');
-local fanout_tag_rules = [ 
+local fanout_tag_rules = [
           {
             frame: {
               '.*': 'orig%d' % tools.anodes[n].data.ident,
